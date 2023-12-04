@@ -32,7 +32,7 @@ Deploy the web server by running the above file. Opens to external IP to enable 
 
 \begin{figure}[htp]
 \centering
-\includegraphics[width=4cm]{images/aws lightsail.png}
+\includegraphics[width=3cm]{images/aws lightsail.png}
 \caption{Amazon Lightsail}
 \label{fig:aws}
 \end{figure}
@@ -87,7 +87,7 @@ We use the LED module for privacy protection. When the device connects to the se
 
 \begin{figure}[htp]
 \centering
-\includegraphics[width=2.5cm]{images/opencv.png}
+\includegraphics[width=2cm]{images/opencv.png}
 \caption{OpenCV}
 \label{fig:opencv}
 \end{figure}
@@ -116,17 +116,10 @@ First, we will apply blurring to the background, excluding the face. \\
 \subsubsection{\textbf{Two-level detection and LED module}}
 Second, we will implement a real-time detection algorithm that operates locally without internet or server connectivity in normal circumstances. In the event of a detected risk of stroke, the system will establish a connection to the server, capturing an accurate photo of the user to utilize a trained artificial intelligence model. If connected to the server or the internet, an LED module located next to the camera will activate, allowing the user to visually confirm the device's status.\\
 
-\subsection{\textbf{NUGU}}
-
-\begin{figure}[htp]
-\centering
-\includegraphics[width=3cm]{images/nugu.jpeg}
-\caption{Nugu AI Speaker}
-\label{fig:nugu}
-\end{figure}
+\subsection{\textbf{Speaker}}
 
 % 인공지능 스피커로 본 프로젝트에서는 라즈베리 파이에서 전송된 뇌졸중 여부를 사용자에게 청각적으로 전달할 수 있다. 이 외에 사용자가 원할 때 촬영을 시작하도록 trigger를 인식할 수 있다.
-Using an artificial intelligence speaker gives the ability to audibly relay stroke information sent from the Raspberry Pi to the user. Additionally, the trigger could be used by the user to initiate photo capture when desired.\\
+Using a speaker gives the ability to audibly relay stroke information sent from the Raspberry Pi to the user. 
 
 \subsection{\textbf{Dashboard}}
 % 뇌졸중 여부를 시각적으로 표현해준다. 라즈베리 파이에서 전송된 뇌졸중 여부와 확률, chatGPT로 작성한 건강에 관련된 유용한 정보를 사용자에게 시각적으로 보여준다. 유용한 정보의 예시는 다음과 같다. 뇌졸중에 도움이 되는 음식이나 생활습관, 만약 발병한다면 어떻게 해야 하는지에 대한 정보가 포함된다.
@@ -148,7 +141,7 @@ It tells users how to prevent themselves of gettting a stroke obtained and this 
 
 \begin{figure}[htp]
 \centering
-\includegraphics[width=2.5cm]{images/chatgpt.png}
+\includegraphics[width=2cm]{images/chatgpt.png}
 \caption{ChatGPT}
 \label{fig:chatgpt}
 \end{figure}
