@@ -161,27 +161,27 @@ Train the Amazon Rekognition model with the data prepared above. Hyperparameters
     \caption{Training Amazon Rekognition, Full automatic}
 \end{figure}
 
+
 \subsubsection{\textbf{Testing and Deploying trained model}}
 % 모델의 학습이 종료되면 배포할 수 있다. 이로써 외부에서 학습된 모델에 접근할 수 있고, 따로 웹 서버를 만들고 실행할 필요 없다. 배포 전에 학습된 모델의 성능을 테스트한 결과도 볼 수 있다. 테스트 데이터 상에서 모든 결과를 정확하게 분류했다. 아래에서 볼 수 있듯이 F1 score 가 1이 나왔다. 그리고 각 데이터의 Confidence level도 상당히 높은 것으로 보아 모델의 학습이 매우 잘 이루어졌단 것을 알 수 있었다.
+
 Once training of the model is complete, it can be distributed. This allows access to externally trained models, and there is no need to create and run a separate web server. You can also see the results of testing the performance of the learned model before deployment. All results were accurately classified on the test data. As you can see below, the F1 score was 1. Also, the confidence level of each data was quite high, showing that the model was trained very well.
-
-
-\begin{figure}[h]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=8.5cm]{images/rek_result.png}
     \caption{Result of testing trained Rekogniton model}
 \end{figure}
 
 
-\begin{figure}[h]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=8.5cm]{images/rek_deploy.png}
     \caption{Deploying trained Rekognition model}
 \end{figure}
 
 
+
 \subsection{\textbf{Raspberry Pi}}
-\\
 
 \subsubsection{\textbf{Raspberry OS installation and connection}}
 To download the Raspberry Pi OS image, you will need a micro SD card. Recently, with the introduction of the Raspberry Pi Imager, downloading and installing the OS has become more convenient.
@@ -191,19 +191,13 @@ After that, insert the SD card into the Raspberry Pi, and connect the power usin
 \subsubsection{\textbf{Wi-fi}}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.5\linewidth]{images/wifi.png}
+    \includegraphics[width=1\linewidth]{images/wifi.png}
     \caption{Wifi Setting}
     \label{fig:enter-label}
 \end{figure}
 While Raspberry Pi does have a built-in Wi-Fi module, it doesn't automatically connect during boot. To enable this functionality, you need to modify the 'wpa\_supplicant.conf' file. Insert your Wi-Fi ID and password as shown below, and use 'scan\_ssid = 1' to allow detection of hidden networks. By making these changes to the 'wpa\_supplicant.conf' file, Raspberry Pi will automatically connect to Wi-Fi during boot. Wi-Fi connection is crucial not only for internet access but also for SSH usage.\\
 
 \subsubsection{\textbf{SSH}}
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.5\linewidth]{images/ssh.png}
-    \caption{SSH Setting}
-    \label{fig:enter-label}
-\end{figure}
 You can configure SSH in the Raspberry Pi settings. Enabling SSH automatically completes the necessary settings. After that, when you first establish an SSH connection, set the connection password, and you are ready to use SSH.
 \\
 
@@ -213,7 +207,7 @@ After connecting your local desktop to the same Wi-Fi network as the Raspberry P
 \subsubsection{\textbf{Camera}}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.5\linewidth]{images/camera.png}
+    \includegraphics[width=1\linewidth]{images/camera.png}
     \caption{Camera Setting}
     \label{fig:enter-label}
 \end{figure}

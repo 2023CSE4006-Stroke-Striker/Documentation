@@ -1,5 +1,3 @@
-\usepackage{graphicx}
-
 \section{\textbf{Architecture Design \& Implementation}}
 
 % 다음은 우리의 전체적인 디자인을 다이어그램으로 도식화한 것이다.
@@ -8,7 +6,7 @@
 \subsection{\textbf{Overall architecture}} \\
 % 우리의 디자인은 크게 두 단계로 나뉜다. 카메라로 사람의 얼굴이 감지되었을 때 실시간으로 face drooping을 검사하는 1단계, 1단계에서 의심스러운 정황이 나타나면 좀 더 정밀한 판단을 위해 인공지능 모델에 정확한 사진을 보내서 답을 얻는 2단계로 구성되어 있다. 이렇게 2-level로 검진 시스템을 구축한 이유는 다음과 같다. 첫째, 컴퓨팅 리소스를 낭비하지 않는다. 실시간으로 카메라의 장면을 인공지능 서버에 보내서 검증하기에는 많은 자원이 낭비된다. 또한, 사람이 집 안에서 생활하면 다양한 각도로 찍힐텐데 이런 상황에서 face-drooping으로 잘못 인식할 수 있다. 이런 오류에 컴퓨팅 리소스를 낭비하지 않기 위해 우선 1단계에선 정밀성은 떨어지더라도 라즈베리 파이에서 구동 가능한 정도의 검증 시스템을 구축해 얼굴의 비대칭 정도가 임계값을 넘을 때에만 2단계의 정밀 검증 시스템으로 넘어가도록 했다. 둘째, 개인정보를 보호할 수 있다. 집의 가구에 설치되는 카메라는 필연적으로 개인정보에 민감할 수 밖에 없다. 그래서 사진을 언제 촬영하는지 사용자에게 시각적으로 알려주는 방식을 생각했다. 애플의 맥북 같은 경우, 웹캠이 작동되면 언제나 초록색 불빛이 들어온다. 마찬가지로 우리의 시스템 역시 사진이 촬영될 때는 하드웨어적으로 불빛이 들어오도록 구현해 사생활 침해의 요소를 줄일 수 있다. 셋째, IoT 기기 의 성능을 고려했다. 가구에 탑재되는 IoT 기기는 성능이 충분하지 않다. 이런 기기에 너무 많은 기능을 한번에 탑재하면 전기가 많이 필요하고 이는 가구의 전기 효율은 낮추는 결과를 낳는다. 이를 방지하면서 추후 MLOps를 구축하는데는 인공지능 모델은 2단계로 구분하는 것이 더 낫다고 판단했다.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=8.5cm]{images/무제.drawio.png}
     \caption{Overall Design of 2-Level}
@@ -45,7 +43,7 @@ The threshold is determined through \cite{mvalue}the examination of the position
 Let’s take a quick look at how step 2 works. In the second step, the image received from the Raspberry Pi must be accurately judged as to whether it is a stroke or not. Train an image classification algorithm, verify it, and deploy it. In this process, the training and verification stages are omitted as they are more low-level. The deployment process uses Amazon Rekognition or uvicorn, one of AWS's AI services. Among these, Amazon Rekognition helps you train, verify, and deploy the model all at once.
 When opening and distributing a web server using uvicorn, an image file is received as input, flattened, and passed as an input value to the model. The return value is 0 or 1 and the respective judgment probability value. At this time, the return values are no stroke and stroke, respectively. The input when using Amazon Rekognition is the same image file. However, the difference is that it is not explicitly flattened, and the return value is a string of 'stroke\_data' or 'noStroke\_data' and the confidence value of each judgment.\\
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=8.5cm]{images/ai-back.drawio (1).png}
     \caption{Architecture when using no-AWS AI service}
@@ -58,9 +56,9 @@ Let's look at the implementation for MLOps. The reason for using AWS is for futu
 
 \subsection{Directory structure}
 
-\begin{table}[h]
+\begin{table}[H]
 \caption{Directory Structure}
-\begin{tabular}{|p{4cm}|p{3cm}|p{2cm}|}
+\begin{tabular}{|p{4cm}|p{2.5cm}|p{1cm}|}
 \hline
 Directory & File names & Module names in use \\ \hline
 /Raspberry/First\_level\_detection & first\_level.py & First\_level detection \\ \hline
@@ -83,74 +81,34 @@ model/deployment & app.py & AI-back \\ \hline
 Step 1 detection relies on face landmarks, processing real-time information through a video stream. It takes a photo when it detects signs of mouth drooping, indicative of a stroke, and sends it to the Step 2 model. Since Step 1 activates upon detecting even slight indications, its accuracy may not be very high. The significance of Step 1 detection lies in its real-time processing, efficient use of resources, and privacy protection. However, given its design for application in IoT programs, the efficient use of limited resources is also a critical consideration.\\
 
 
-\begin{figure}[h]
-    \centering
-\includegraphics[width=0.5\linewidth]{images/first_level.png}
-    \caption{first\_level.py}
-    \label{fig:enter-label}
-\end{figure}
-
 \textbf{first\_level.py}
 % main이 되는 실행파일로 OpenCV 라이브러리를 통해 camera로 부터 Video Stream 정보를 가져온다. 라즈베리파이의 하드웨어적 한계로 인해 Buffer size를 최소화여 Video Stream를 불러와야 한다. 이후 cv2.imshow를 통해 처리된 video stream을 볼 수 있다. 또한 first_level.py에서 처리되는 정보를 Gray scale로 변경해준다. Gray Scale을 사용하는 이유는 첫 째, 정보의 용량이 감소한다. RGB를 사용할 경우 RGB 3개의 색상 channel이 생기므로 처리할 정보가 늘어난다. 본 프로젝트에서는 색상 정보가 필요하지 않기때문에 gray scale로 변경해 용량을 줄이고 처리 속도를 향상시키고자 하였다. 둘 째, 노이즈가 감소한다. IoT 장비에 들어가는 카메라는 고성능일 수 없다. 따라서 화질이 안좋은 만큼 노이즈가 많을텐데 gray scale로 변경함으로써 노이즈를 줄이고 우리가 원하는 drooping 정보를 깔끔하게 얻을 수 있다. gray scale로 변경하는 작업은 픽셀을 하나씩 변경해주어야하는데 OpenCV에서 cv2.cvtColor 함수를 제공하기에 이를 사용해서 simple하게 바꿀 수 있다. 또한 face landmark 탐지를 위해 dlib 함수를 사용해 gray scale로 변경된 Video stream을 이 함수에 전달해주는 것까지 해당 파일에서 진행한다.
 
 The main executable file uses the OpenCV library to capture video stream information from the camera. Due to hardware limitations of the Raspberry Pi, it is essential to minimize the buffer size for loading the video stream. Subsequently, the processed video stream can be viewed using cv2.imshow. Additionally, the information processed in first\_level.py is converted to grayscale. The rationale behind using grayscale is twofold. Firstly, it reduces the data size since using RGB would introduce three color channels, increasing the processing load. As color information is unnecessary for this project, converting to grayscale reduces the data size, enhancing processing speed. Secondly, it decreases noise. Cameras for IoT devices may not be high-performance, resulting in potentially noisy images. Converting to grayscale helps mitigate noise, allowing us to obtain clean drooping information. The task of converting to grayscale involves altering each pixel, a task facilitated by the cv2.cvtColor function in OpenCV. Furthermore, in the same file, the video stream, now in grayscale, is passed to the dlib function for face landmark detection.\\
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.5\linewidth]{images/detect_face.png}
-    \caption{detect\_face.py}
-    \label{fig:enter-label}
-\end{figure}
 
 \textbf{detect\_face.py}
 %detect_face에서는 m-value를 계산하여 first detection을 수행한다. 또한 Video Stream을 처리하기 때문에 과하게 얼굴 각도가 기울어져있으면 결과에 영향을 주기도 한다. 그래서 먼저 얼굴 각도를 계산한다. landmark의 27번 인덱스와 8번 인덱스는 얼굴의 상하단 좌표이다. numpy의 arctan함수를 사용해 각도를 구하고 이 각도가 85도에서 95도 사이일 경우에만 first_level detection이 진행된다. 이후 m-value를 구한다. landmark의 57번 인덱스는 아랫입술의 가운데 좌표이고, 48번은 왼쪽 끝, 54번은 오른쪽 끝 좌표이다. 아랫입술과 양쪽 입술 끝의 차이를 relative_corner로 구하며 이 차이가 곧 m_value가 된다. 이 m_value가 0.25 이상일 경우에 first_level detection에 잡히게 되고 이후 second_level detection을 위한 사진을 촬영한다. 동시에 이를 aws polly를 이용해 voice로 알림을 준다. 추가로 frame에서의 입술의 좌표를 보여주는 것과 face landmark를 위한 dlib의 보조 파일을 주는 것까지 detect_face.py에서 수행한다.
 
 In the detect\_face module, the m\_value is computed to perform the initial detection. Given that it processes a video stream, excessively tilted face angles can impact the results. Therefore, the first step involves calculating the face angle. Landmark indices 27 and 8 represent the top and bottom coordinates of the face. Using the arctan function of numpy, the angle is computed, and first-level detection proceeds only when this angle between 85 and 95 degrees. After that, the m-value is determined. Landmark index 57 corresponds to the center coordinate of the lower lip, while 48 and 54 represent the left and right ends, respectively. The difference between the lower lip and the ends of both lips, known as relative\_corner, becomes the m-value. If this m\_value is greater than or equal to 0.25, it triggers the first-level detection, capturing a photo for subsequent second\_level detection. Simultaneously, an alert is provided using AWS Polly in a voice format. Additionally, detect\_face.py handles displaying lip coordinates on the frame and providing auxiliary files for face landmarks using dlib.\\
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.5\linewidth]{images/take_photo.png}
-    \caption{take\_photo.py}
-    \label{fig:enter-label}
-\end{figure}
 
 \textbf{take\_photo.py}
 %take_photo.py는 second_level detection으로 전송할 사진을 찍는 기능을 수행한다. openCV의 imwrite 함수를 활용해 현재 frame에 잡혀있는 모습을 이미지로 저장한다. IoT에 들어갈 소프트웨어이기 때문에 찍은 사진을 전부 저장하지 않고 가장 최근에 찍은 사진만을 local에 저장한다. 이전 이미지들은 second_level로 전송됨과 동시에 aws cloud에 저장된다. 
 
 The take\_photo.py module serves the functionality of capturing a photo to be sent for second-level detection. It utilizes the imwrite function from OpenCV to save the current frame as an image. Given its purpose as software for IoT, it only retains the most recently captured photo locally, instead of storing all the taken pictures. Previous images are sent for second\_level detection and concurrently stored in the AWS Cloud.\\
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.5\linewidth]{images/image_send.png}
-    \caption{image\_send.py}
-    \label{fig:enter-label}
-\end{figure}
-
 \textbf{image\_send.py}
 %image_send.py는 웹서버를 통해 second_level detection을 진행할 때 사용된다. 실행중인 웹서버의 url을 가지고 특정 이미지 파일을 전송한다. POST방식을 사용해 request를 보내고 json 파일로 response를 받는다. 이후 response된 json파일을 python 객체로 변환한 후 response의 인덱스에 따른 결과값을 확인한다. prediction이 0이라면 stroke이 탐지되지 않은 것이고 이외의 값이라면 탐지된 것이다. 이때 second_level model이 판단한 Accuracy까지 user에게 보여준다.
 
 The image\_send.py module is used when going second-level detection through a web server. It sends a specific image file to the running web server's URL using the POST method, then receives the response in the form of a JSON. Subsequently, it converts the received JSON file into a Python object and checks the result based on the response index. If the prediction is 0, it indicates that a stroke has not been detected; otherwise, it signifies a detection. Additionally, it displays the accuracy determined by the second-level model to the user.\\
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.5\linewidth]{images/count_clock.png}
-    \caption{count\_clock.py}
-    \label{fig:enter-label}
-\end{figure}
 
 \textbf{count\_clock.py}
 %count\_clock.py는 openCV imshow frame에 카운트를 띄우는 기능을 한다. first_level에서 Mouse drooping이 발견되면 사진을 찍기 전 "Look at the camera"를, 사진을 찍은 후엔 다시 first_level로 돌아가기 전까지 "Now Start again..."을 보여준다.
 
 The count\_clock.py module performs the function of displaying a count on the OpenCV imshow frame. When Mouse drooping is detected in the first\_level, it shows "Look at the camera" before taking a photo, and after capturing the photo, it displays "Now Start again..." until returning to the first\_level.\\
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.45\textwidth]{images/send_aws_1.png}
-  \hspace{0.05\textwidth}
-  \includegraphics[width=0.45\textwidth]{images/send_aws_2.png}
-  \caption{send\_aws.py}
-  \label{fig:twopics}
-\end{figure}
 
 \textbf{send\_aws.py}
 This script utilizes the AWS Rekognition service to detect custom labels in images and generate voice alerts based on the detected labels. The code reads an image from a local file, uses the Amazon Rekognition Custom Labels to detect labels defined in a custom model, and triggers voice alerts accordingly.
@@ -168,14 +126,6 @@ Key functions and components:
 \end{enumerate}
 This code primarily focuses on utilizing the AWS Rekognition service for image processing and custom label detection, demonstrating the functionality of an application that triggers voice alerts based on image analysis results.\\
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.45\textwidth]{images/voice_alert_1.png}
-  \hspace{0.05\textwidth}
-  \includegraphics[width=0.45\textwidth]{images/voice_alert_2.png}
-  \caption{alert\_aws.py}
-  \label{fig:twopics}
-\end{figure}
 
 \textbf{voice\_alert.py}
 This is designed to synthesize speech from a given text using the Amazon Polly service and play the resulting audio.
@@ -200,16 +150,16 @@ This is designed to synthesize speech from a given text using the Amazon Polly s
 The script expects Pygame to be installed for audio playback.
 Overall, this function provides a convenient way to synthesize speech from text using Amazon Polly and play the generated audio using the Pygame library.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=8.5cm]{images/rf_data.png}
+    \includegraphics[width=8.5cm]{images/preprocessing.png}
     \caption{Pre-processing data in Random Forest}
     \label{fig:enter-label}
 \end{figure}
 
 \subsubsection{Module2: AI-back}
 % AI-back 모듈은 2-Level detection에서 2단계를 구성하는 요소이다. 인공지능 모델로 3가지를 생각했다. 머신러닝 기반의 Support Vector Machine과 앙상블 학습을 하는 Random Forest, 그리고 딥러닝 기반의 ViT를 각각 만들고 실험했다. ipynb 파일은 Google Colab에서 작성한 코드이다.
-The AI-back module is an element that constitutes the second stage in 2-Level detection. We thought of three things as an artificial intelligence model. We created and tested machine learning based Support Vector Machine, random forest using ensemble learning, and deep learning-based ViT. The ipynb file is code written in Google Colab.
+The AI-back module is an element that constitutes the second stage in 2-Level detection. We thought of three things as an artificial intelligence model. We created and tested machine learning based Support Vector Machine, random forest using ensemble learning, and deep learning-based ViT. The ipynb file is code written in Google Colab. \\
 
 \textbf{SE\_RandomForest.ipynb} \\
 % Random Forest 머신러닝 모델을 사용하고 그 모델을 훈련시키는 노트북 파일이다. 파일은 크게 3부분으로 나뉜다. 첫째, 뇌졸중 환자와 정상인의 얼굴 데이터를 불러와서 전처리를 하는 과정. 둘째, 전처리한 데이터를 랜덤 포레스트 모델을 불러와서 학습시키는 과정. 마지막으로 훈련을 마친 모델을 테스트하는 과정이다.
@@ -218,12 +168,7 @@ This is a notebook file that uses the Random Forest machine learning model and t
 % 데이터 전처리는 다음과 같은 과정으로 이루어진다. 이미지를 폴더에서 불러오고 흑백으로 전환한다. 이미지의 색깔과 표정은 독립적이므로 입력의 차원값을 줄이는 방향으로 진행했다. 이미지 데이터의 크기가 제각각이므로 (150, 150)의 크기로 변환하고 이를 평면화해서 벡터로 만들었다. 
 Data preprocessing consists of the following processes. Load an image from a folder and convert it to black and white. Since the color and expression of the image are independent, we proceeded to reduce the dimension of the input. Since the size of the image data is different, we converted it to a size of (150, 150) and flattened it into a vector.
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=8.5cm]{images/rf_data.png}
-    \caption{Pre-processing data in Random Forest}
-    \label{fig:enter-label}
-\end{figure}
+
 
 % 사이킷런의 라이브러리를 활용해 모델을 import했다. 훈련용 데이터와 테스트용 데이터를 80%, 20%로 나누고 훈련용 데이터로 학습시켰다. 이 과정은 수분밖에 소요되지 않았다.
 The model was imported using scikit-learn’s library. The training data and testing data were divided into 80\% and 20\% and learned using the training data. This process took only a few minutes.
@@ -232,7 +177,7 @@ The model was imported using scikit-learn’s library. The training data and tes
 Finally, the trained model is verified with test data. At this time, the performance of the stroke judgment model cannot be assured with simple accuracy. Since it is a judgment of a person's health, it must be judged in detail, including true positives and false negatives. Use the classification\_report function to determine more accurate performance.
 
 % 아래는 실제 classification_report 함수를 적용한 결과이다. 주목해야 할 점은 stroke의 precision 값이 0.97로 매우 높다는 점이다. 이는 모델이 stroke라 판단했으면 실제로 stroke인 확률이 97%인 것이다. 반면 stroke recall은 0.72로 떨어지는데 이는 실제로는 stroke이지만 stroke로 모델이 판단을 하지 못한 것이 28%라는 뜻이다. 전체적으로 stroke의 정확도가 no-stroke 판단의 정화도보다 낮은데 이는 데이터의 갯수가 no-stroke가 많기 때문이라고 사료된다.
-Below is the result of applying the actual classification\_report function. What is important to note is that the stroke precision value is very high at 0.97. This means that if the model determines that it is a stroke, there is a 97\% probability that it is actually a stroke. On the other hand, stroke recall drops to 0.72, which means that 28\% of cases were actually strokes, but the model failed to judge them as strokes. Overall, the accuracy of stroke is lower than the precision of no-stroke judgment, which is believed to be because the number of data is large.
+Below is the result of applying the actual classification\_report function. What is important to note is that the stroke precision value is very high at 0.97. This means that if the model determines that it is a stroke, there is a 97\% probability that it is actually a stroke. On the other hand, stroke recall drops to 0.72, which means that 28\% of cases were actually strokes, but the model failed to judge them as strokes. Overall, the accuracy of stroke is lower than the precision of no-stroke judgment, which is believed to be because the number of data is large.\\
 \begin{figure}[h]
     \centering
     \includegraphics[width=8.5cm]{images/rf_result.png}
@@ -243,7 +188,7 @@ Below is the result of applying the actual classification\_report function. What
 
 \textbf{rf\_stroke\_classification} \\
 % 위의 파일로 훈련이 완료된 모델이다. joblib 함수로 파일을 저장했다. 이후 이 파일을 AWS Lightsail에 옮기고 후술될 app.py 파일에서 호출해서 웹 서버로 올린다. 이것으로 모델을 웹 서버로 배포한다.
-This is a model that has been trained with the file above. The file was saved using the joblib function. Afterwards, move this file to AWS Lightsail and upload it to the web server by calling it from the app.py file, which will be described later. This deploys the model to the web server.
+This is a model that has been trained with the file above. The file was saved using the joblib function. Afterwards, move this file to AWS Lightsail and upload it to the web server by calling it from the app.py file, which will be described later. This deploys the model to the web server.\\
 
 \textbf{SE\_SVM.ipynb} \\
 % Support Vector Machine 기반으로 학습을 진행하는데 사용된 파일이다. Google Colab에서 작동했으며 SE\_RandomForest.ipynb 파일과 동일한 과정을 거쳐 데이터 전처리, 학습, 검증을 했다.
@@ -252,13 +197,6 @@ This is a file used to conduct learning based on Support Vector Machine. It ran 
 % 데이터 전처리는 이미지의 색을 흑백으로 전환해 데이터의 차원 수를 낮추고 크기를 (150, 150)으로 일괄적으로 변환했다. 이미지 전처리 과정에서 SE\_RandomForest.ipynb 파일과 차이점은 훈련 데이터의 갯수를 500개로 제한했다는 점이다. 똑같이 모든 데이터를 활용해서 훈련을 진행하면 Google Colab CPU로 훈련했을 때, 5시간 넘게 진행해도 훈련이 종료되지 않았다. 이렇게 모든 데이터를 훈련에 사용하는 것은 무리가 있다고 판단해 500개로 데이터의 개수를 제한해서 사용했다.
 For data preprocessing, the color of the image was converted to black and white, the number of dimensions of the data was reduced, and the size was batch converted to (150, 150). The difference from the SE\_RandomForest.ipynb file in the image preprocessing process is that the number of training data is limited to 500. When training was performed using all data in the same way, when training was performed with Google Colab CPU, training did not end even after more than 5 hours. We judged that it would be unreasonable to use all the data for training, so we limited the number of data to 500.
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=8.5cm]{images/svm_data.png}
-    \caption{Pre-processing data in Support Vector Machine}
-    \label{fig:enter-label}
-\end{figure}
-
 % scikit-learn의 SVC를 불러와서 훈련을 진행했다. 훈련용 데이터와 테스트용 데이터는 위와 같이 각각 80%, 20%로 구성했으며 훈련 시간은 1시간 내외로 소요됐다.
 Then, we loaded scikit-learn's SVC and ran training. The training time, which consists of 80\% training data and 20\% testing data, is approximately 1 hour.
 
@@ -266,7 +204,7 @@ Then, we loaded scikit-learn's SVC and ran training. The training time, which co
 % 테스트 검증 결과는 다음과 같다. 자세한 정확도를 구하기 위해 classification_report를 사용했고 모든 경우에서 88%의 정확도를 보였다. 하지만 테스트 데이터의 양이 50개로 매우 적어서 유의미한 결과라고 해석하기는 어려웠고, 학습도 어려움이 있어 여기서 다른 모델을 강구하기 시작했다.
 The test verification results are as follows. We used classification\_report to obtain detailed accuracy and showed an accuracy of 88\% in all cases. However, the amount of test data was very small at 50, so it was difficult to interpret the results as meaningful, and learning was also difficult, so we started looking for a different model.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=8.5cm]{images/svm_result.png}
     \caption{The result of Support Vector Machine model}
@@ -276,13 +214,6 @@ The test verification results are as follows. We used classification\_report to 
 
 % joblib 함수로 학습이 완료된 모델을 저장하고 AWS Lightsail로 옮겨 웹 서버로 배포했다. 이 때, 모델의 크기가 200MB를 넘었다. 이 점 또한 다른 모델을 찾아보기 시작한 이유 중 하나이다.
 We saved the trained model using the joblib function, moved it to AWS Lightsail, and deployed it to a web server. At this time, the size of the model exceeded 200MB. This is also one of the reasons why I started looking for other models.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=8.5cm]{images/svm_save.png}
-    \caption{Saving trained SVM model by using joblib}
-    \label{fig:enter-label}
-\end{figure}
 
 
 \textbf{se\_svm.py} \\
@@ -297,9 +228,9 @@ This file is a file that implements ViT. ViT consists of several modules. The pa
 % 학습에 필요한 데이터는 아래와 같이 전처리했다. pytorch 기반으로 ViT를 구현했으므로 Dataset과 이를 iteration할 수 있는 Dataloader를 직접 구현했다. 일관성을 유지하기 위해 흑백 사진으로 변환하고 이미지의 크기를 (150, 150)으로 바꾸었다. 사용한 함수는 다르지만 문맥은 위의 머신러닝 기반 모델과 동일하다.
 The data needed for learning was preprocessed as follows. Since ViT was implemented based on pytorch, we directly implemented Dataset and Dataloader that can iterate on it. For consistency, I converted it to a black and white photo and resized the image to (150, 150). The functions used are different, but the context is the same as the machine learning-based model above.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=8.5cm]{images/ViT_dataset.png}
+    \includegraphics[width=8.5cm]{images/Dataset.png}
     \caption{Dataset and Dataloader for ViT}
     \label{fig:enter-label}
 \end{figure}
@@ -307,37 +238,25 @@ The data needed for learning was preprocessed as follows. Since ViT was implemen
 % 가장 중요한 MSA 모듈에 대해 상세한 구현은 다음과 같다. head 개수만큼 Q, K, V matrix를 pytorch의 Linear로 선언해서 back propagation으로 학습이 가능하도록 한다. 그리고 미리 주어진 입력에 대해 정해진 Q, K, V 내적을 진행해서 결과를 만들어낸다. 이 결과는 stack 형식으로 쌓여 있다가 모든 연산이 종료되면 입력과 동일한 차원으로 합병되어 출력한다. 즉, 연산 과정에는 head 개수만큼 분할되어 연산이 병렬적으로 진행된다. 
 The detailed implementation of the most important MSA modules is as follows. Declare Q, K, and V matrices as Linear in pytorch as many as the number of heads to enable learning through back propagation. Then, the Q, K, and V dot products are performed on pre-given inputs to produce a result. These results are stacked in a stack format, and when all operations are completed, they are merged into the same dimension as the input and output. In other words, during the calculation process, the division is divided by the number of heads and the calculation is carried out in parallel.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=8.5cm]{images/MyMSA.png}
-    \caption{Implementation of Multi-head Self Attention}
+    \includegraphics[width=8.5cm]{images/vit forward.png}
+    \caption{Core source code in app.py}
     \label{fig:enter-label}
 \end{figure}
+
 
 % 위의 모듈을 만들고 아래 소스 코드와 같이 ViTBlock class를 만들어 이 class에 넣는다. 이 ViTBlock class는 MSA와 각종 결과의 정규화, Residual Connection이 포함된다.
-After creating the above module, make a ViTBlock class as shown in the source code below, and insert it into this class. This ViTBlock class includes MSA, normalization of various results, and residual connection.
+After creating the above module, make a ViTBlock class, and insert it into this class. This ViTBlock class includes MSA, normalization of various results, and residual connection.
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=8.5cm]{images/MyViTBlock.png}
-    \caption{Implementation of ViTBlock}
-    \label{fig:enter-label}
-\end{figure}
 
 % ViTBlock을 만들고 patchify, get_positional_embedding과 같은 데이터 전처리 과정을 포함해 최종적으로 아래와 같은 ViT class를 만들었다.
 We created ViTBlock, including data preprocessing processes such as patchify and get\_positional\_embedding, and ultimately created the ViT class below.
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=8.5cm]{images/MyViT.png}
-    \caption{Implementation of ViT class}
-    \label{fig:enter-label}
-\end{figure}
-
 % 구현을 완료한 후에 main 문에서 테스트를 진행했다. Adam optimizer를 이용해서 5 epoch으로 훈련한 결과 66\% 정도의 정확도를 보였다. 수치 상으로는 제일 낮은 정확도를 보였다. 이는 학습이 충분히 이루어지지 않았다고 추론할 수 있다. ViT는 많은 데이터가 필요한데 환자의 의료 정보와 깊게 관련이 있어 충분한 양의 학습 데이터를 구하기 어려웠다. 또한 데이터가 augmented 된 데이터가 많아 중복된 데이터가 있다. ViT의 구조적인 문제와 현실의 상황 문제로 높은 성능을 나타내진 못한 것으로 생각된다.
 After completing the implementation, testing was conducted in the main statement. As a result of training with 5 epochs using Adam optimizer, the accuracy was about 66\%. Numerically, it showed the lowest accuracy. This can be inferred that sufficient learning has not occurred. ViT requires a lot of data, but it is difficult to obtain a sufficient amount of learning data because it is deeply related to patients' medical information. Additionally, there is duplicated data as there is a lot of augmented data. It is believed that ViT did not achieve high performance due to structural problems and real-life situation problems.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=8.5cm]{images/ViT_result.png}
     \caption{The result of testing ViT}
@@ -347,10 +266,10 @@ After completing the implementation, testing was conducted in the main statement
 \textbf{se\_vitprac.py} \\
 The above SE\_ViT.ipynb file was saved as a python file. The contents of the file are as above.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=8.5cm]{images/app.py.png}
-    \caption{Core source code in app.py}
+    \includegraphics[width=8.5cm]{images/app.py_algorithm.png}
+    \caption{Multi-head self attention}
     \label{fig:enter-label}
 \end{figure}
 
